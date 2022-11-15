@@ -4,8 +4,6 @@
 
 void database(char nome[50], char sobrenome[50], char idade[3]);
 
-char nome[100] = "Alexandre";
-
 void main(void)
 {
     char nome[50];
