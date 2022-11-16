@@ -19,6 +19,7 @@ void main(void)
 
 void database(char nome[50], int idade)
 {
+    // DATABASE CONFIG
     MYSQL *conn;
       MYSQL_RES *res;
       MYSQL_RES *res2;
@@ -39,6 +40,7 @@ void database(char nome[50], int idade)
           exit(1);
       }
 
+      // MOSTRAR TABLES
       /* send SQL query */
       if (mysql_query(conn, "show tables")) {
           fprintf(stderr, "%s\n", mysql_error(conn));
@@ -52,6 +54,8 @@ void database(char nome[50], int idade)
       while ((row = mysql_fetch_row(res)) != NULL)
           printf("%s \n", row[0]);
 
+      // INSERT QUERY
+
       char insert_nome[2000];
 
       sprintf(insert_nome, "insert into USUARIOS (NOME, IDADE) values ('%s', '%d')", nome, idade);
@@ -59,6 +63,8 @@ void database(char nome[50], int idade)
           fprintf(stderr, "%s\n", mysql_error(conn));
           exit(1);
       }
+
+      // SELECT QUERY
 
       /* send SQL query */
       if (mysql_query(conn, "select * from USUARIOS")) {
