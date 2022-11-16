@@ -2,56 +2,78 @@
 #include <stdlib.h>
 #include <mysql/mysql.h>
 
-void database(char nome[50], char sobrenome[50], char idade[3]);
+void database(char nome[50], int idade);
 
 void main(void)
 {
     char nome[50];
     char sobrenome[50];
-    char idade[3];
+    int idade;
     printf("Cadastre seu usuario\n");
     printf("\nDigite seu nome\n");
     fgets(nome, sizeof(nome), stdin);
-    printf("Digite seu sobrenome\n");
-    fgets(sobrenome, sizeof(sobrenome), stdin);
     printf("Digite sua idade\n");
-    fgets(idade, sizeof(idade), stdin);
-    database(nome, sobrenome, idade);
+    scanf("%d", &idade);
+    database(nome, idade);
 }
 
-void database(char nome[50], char sobrenome[50], char idade[3])
+void database(char nome[50], int idade)
 {
-  MYSQL *conn = mysql_init(NULL);
+    MYSQL *conn;
+      MYSQL_RES *res;
+      MYSQL_RES *res2;
+      MYSQL_ROW row;
 
-  if (mysql_real_connect(conn, "localhost", "root", "Vasco123@",
-          NULL, 0, NULL, 0) == NULL)
-  {
-      fprintf(stderr, "%s\n", mysql_error(conn));
+      char *server = "localhost";
+      char *user = "root";
+      //set the password for mysql server here
+      char *password = "Vasco123@"; /* set me first */
+      char *database = "USUARIO";
+
+      conn = mysql_init(NULL);
+
+      /* Connect to database */
+      if (!mysql_real_connect(conn, server,
+            user, password, database, 0, NULL, 0)) {
+          fprintf(stderr, "%s\n", mysql_error(conn));
+          exit(1);
+      }
+
+      /* send SQL query */
+      if (mysql_query(conn, "show tables")) {
+          fprintf(stderr, "%s\n", mysql_error(conn));
+          exit(1);
+      }
+
+      res = mysql_use_result(conn);
+
+      /* output table name */
+      printf("MySQL Tables in mysql database:\n");
+      while ((row = mysql_fetch_row(res)) != NULL)
+          printf("%s \n", row[0]);
+
+      char insert_nome[2000];
+
+      sprintf(insert_nome, "insert into USUARIOS (NOME, IDADE) values ('%s', '%d')", nome, idade);
+      if (mysql_query(conn, insert_nome)) {
+          fprintf(stderr, "%s\n", mysql_error(conn));
+          exit(1);
+      }
+
+      /* send SQL query */
+      if (mysql_query(conn, "select * from USUARIOS")) {
+          fprintf(stderr, "%s\n", mysql_error(conn));
+          exit(1);
+      }
+
+      res = mysql_use_result(conn);
+
+      /* output SELECT */
+      printf("MySQL Tables in mysql database:\n");
+      while ((row = mysql_fetch_row(res)) != NULL)
+          printf("%s""%s", row[0], row[1]);
+
+      /* close connection */
+      mysql_free_result(res);
       mysql_close(conn);
-      exit(1);
-  }
-
-
-  if (mysql_query(conn, "USE USUARIO"))
-  {
-      fprintf(stderr, "%s\n", mysql_error(conn));
-      mysql_close(conn);
-      exit(1);
-  }
-
-  char sql_statement[2048];
-
-  //char nome[20] = "JOKO";
-
-  sprintf(sql_statement, "INSERT INTO USUARIOS(nome, sobrenome, idade) VALUES('%s','%s','%s')", nome, sobrenome, idade);
-
-  if (mysql_query(conn, sql_statement))
-  {
-      fprintf(stderr, "%s\n", mysql_error(conn));
-      mysql_close(conn);
-      exit(1);
-  } else {printf("\nCadastrado com sucesso\n");}
-
-  mysql_close(conn);
-  exit(0);
 }
